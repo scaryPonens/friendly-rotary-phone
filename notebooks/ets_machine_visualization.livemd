@@ -14,6 +14,7 @@ Mix.install([
 alias Explorer.DataFrame, as: DF
 alias VegaLite, as: Vl
 alias MlLab.ETS.Examples.BubbleMan
+alias MlLab.ETS.MachineGraphviz
 alias MlLab.ETS.MachineIntrospection
 
 machine = BubbleMan.machine()
@@ -65,6 +66,29 @@ Vl.new(width: 500, height: 240)
   [field: "event", type: :nominal],
   [field: "emission", type: :nominal]
 ])
+```
+
+## Graphviz DOT export
+
+```elixir
+dot = MachineGraphviz.to_dot(machine, graph_name: "bubble_man")
+Kino.Markdown.new("```dot\n" <> dot <> "\n```")
+```
+
+```elixir
+# Optional: write to file for external rendering
+MachineGraphviz.write_dot!(machine, "notebooks/bubble_man.dot", graph_name: "bubble_man")
+```
+
+```elixir
+# If graphviz is installed (`dot` binary), render SVG inline
+if System.find_executable("dot") do
+  File.write!("/tmp/bubble_man.dot", dot)
+  {_svg, 0} = System.cmd("dot", ["-Tsvg", "/tmp/bubble_man.dot", "-o", "/tmp/bubble_man.svg"])
+  Kino.Image.new(File.read!("/tmp/bubble_man.svg"), :svg)
+else
+  "Install graphviz to render SVG inline."
+end
 ```
 
 ## Run machine and inspect trace

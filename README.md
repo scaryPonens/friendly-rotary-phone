@@ -129,6 +129,7 @@ Then open http://localhost:8080 in your browser.
 - **`notebooks/ets_machine_visualization.livemd`**: Transition/emission introspection:
   - State transition table and heatmap
   - Emission table and summary chart
+  - Graphviz DOT export (optional SVG rendering with `dot`)
   - End-to-end machine run trace
 - **`notebooks/ets_constraint_debugger.livemd`**: Constraint-level debugging:
   - Step-by-step state/emission trace rows
