@@ -3,7 +3,8 @@ defmodule MlLabTest do
   doctest MlLab
 
   test "runs bubble man generation" do
-    assert {:ok, struct, :q3, [:seed_head, :grow_torso, :attach_limbs]} = MlLab.generate_bubble_man()
+    assert {:ok, struct, :q3, [:seed_head, :grow_torso, :attach_limbs]} =
+             MlLab.generate_bubble_man()
 
     labels = struct.primitives |> Map.values() |> Enum.map(& &1.label)
 

@@ -8,7 +8,6 @@ defmodule MlLab.ETS.Struct do
 
   alias MlLab.ETS.Primitive
 
-  @enforce_keys [:primitives, :links]
   defstruct primitives: %{}, links: MapSet.new()
 
   @type primitive_id :: term()

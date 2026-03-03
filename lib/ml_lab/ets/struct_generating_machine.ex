@@ -28,9 +28,15 @@ defmodule MlLab.ETS.StructGeneratingMachine do
 
   @spec generate(ETSStruct.t(), ClassRepresentation.t(), t(), [event()]) ::
           {:ok, ETSStruct.t(), state(), [atom()]} | {:error, term()}
-  def generate(%ETSStruct{} = struct, %ClassRepresentation{} = class_rep, %__MODULE__{} = machine, events) do
+  def generate(
+        %ETSStruct{} = struct,
+        %ClassRepresentation{} = class_rep,
+        %__MODULE__{} = machine,
+        events
+      ) do
     Enum.reduce_while(events, {:ok, struct, machine.start_state, []}, fn event,
-                                                                         {:ok, acc_struct, state, trace} ->
+                                                                         {:ok, acc_struct, state,
+                                                                          trace} ->
       with {:ok, next_state} <- fetch_transition(machine, state, event),
            {:ok, next_struct, maybe_constraint_id} <-
              apply_emission(acc_struct, class_rep, machine, state, event) do
