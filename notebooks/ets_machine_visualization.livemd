@@ -1,0 +1,75 @@
+# ETS Machine Visualization (Livebook)
+
+```elixir
+Mix.install([
+  {:explorer, "~> 0.7"},
+  {:vega_lite, "~> 0.1"},
+  {:kino, "~> 0.11"}
+])
+```
+
+## Load modules
+
+```elixir
+alias Explorer.DataFrame, as: DF
+alias VegaLite, as: Vl
+alias MlLab.ETS.Examples.BubbleMan
+alias MlLab.ETS.MachineIntrospection
+
+machine = BubbleMan.machine()
+```
+
+## Transition table
+
+```elixir
+transition_rows = MachineIntrospection.transition_rows(machine)
+transition_df = DF.new(transition_rows)
+transition_df
+```
+
+## Emission table
+
+```elixir
+emission_rows = MachineIntrospection.emission_rows(machine)
+emission_df = DF.new(emission_rows)
+emission_df
+```
+
+## Transition matrix heatmap
+
+```elixir
+Vl.new(width: 480, height: 220)
+|> Vl.data_from_values(transition_rows)
+|> Vl.mark(:rect)
+|> Vl.encode_field(:x, "to", type: :nominal, title: "To state")
+|> Vl.encode_field(:y, "from", type: :nominal, title: "From state")
+|> Vl.encode_field(:color, "event", type: :nominal, title: "Event")
+|> Vl.encode(:tooltip, [
+  [field: "from", type: :nominal],
+  [field: "event", type: :nominal],
+  [field: "to", type: :nominal]
+])
+```
+
+## Emissions by state
+
+```elixir
+Vl.new(width: 500, height: 240)
+|> Vl.data_from_values(emission_rows)
+|> Vl.mark(:bar)
+|> Vl.encode_field(:x, "state", type: :nominal, title: "State")
+|> Vl.encode_field(:y, "count()", type: :quantitative, title: "Emission count")
+|> Vl.encode_field(:color, "emission", type: :nominal)
+|> Vl.encode(:tooltip, [
+  [field: "state", type: :nominal],
+  [field: "event", type: :nominal],
+  [field: "emission", type: :nominal]
+])
+```
+
+## Run machine and inspect trace
+
+```elixir
+{:ok, _struct, final_state, trace} = BubbleMan.generate()
+%{final_state: final_state, trace: trace}
+```
