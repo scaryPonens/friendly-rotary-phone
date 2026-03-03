@@ -18,8 +18,8 @@ It now also includes an **ETS-inspired thesis reimplementation track** (temporal
 
 ### Required
 
-- **Elixir 1.16.x** or later (1.14+ supported, 1.16+ recommended)
-- **Erlang/OTP 26.x** or later (OTP 25+ supported, OTP 26+ recommended)
+- **Elixir 1.18.x** or later (1.18+ required)
+- **Erlang/OTP 27.x** or later (OTP 27+ required)
 
 ### Recommended
 
