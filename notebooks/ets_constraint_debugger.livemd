@@ -1,0 +1,105 @@
+# ETS Constraint Debugger (Livebook)
+
+```elixir
+Mix.install([
+  {:explorer, "~> 0.7"},
+  {:vega_lite, "~> 0.1"},
+  {:kino, "~> 0.11"}
+])
+```
+
+## Load modules
+
+```elixir
+alias Explorer.DataFrame, as: DF
+alias VegaLite, as: Vl
+alias MlLab.ETS.DebugTrace
+alias MlLab.ETS.Examples.BubbleMan
+alias MlLab.ETS.Struct, as: ETSStruct
+
+class_rep = BubbleMan.class_representation()
+machine = BubbleMan.machine()
+```
+
+## Successful run trace
+
+```elixir
+{:ok, final_struct, final_state, rows} =
+  DebugTrace.run(ETSStruct.new(), class_rep, machine, [:step, :step, :step])
+
+%{final_state: final_state, primitive_count: map_size(final_struct.primitives), link_count: MapSet.size(final_struct.links)}
+```
+
+```elixir
+trace_df =
+  rows
+  |> Enum.map(fn row ->
+    %{
+      step: row.step,
+      event: to_string(row.event),
+      from_state: to_string(row.from_state),
+      to_state: to_string(row.to_state),
+      emission: to_string(row.emission || :none),
+      primitive_count: row.primitive_count,
+      link_count: row.link_count,
+      status: to_string(row.status),
+      reason: inspect(row.reason)
+    }
+  end)
+  |> DF.new()
+
+trace_df
+```
+
+## Primitive growth by step
+
+```elixir
+Vl.new(width: 520, height: 220)
+|> Vl.data_from_values(
+  rows
+  |> Enum.map(fn row ->
+    %{step: row.step, primitive_count: row.primitive_count, status: to_string(row.status)}
+  end)
+)
+|> Vl.mark(:line, point: true)
+|> Vl.encode_field(:x, "step", type: :ordinal)
+|> Vl.encode_field(:y, "primitive_count", type: :quantitative)
+|> Vl.encode_field(:color, "status", type: :nominal)
+```
+
+## Failure example
+
+```elixir
+{:error, failure_rows} =
+  DebugTrace.run(ETSStruct.new(), class_rep, machine, [:step, :invalid_event, :step])
+
+failure_rows
+|> Enum.map(fn row ->
+  %{
+    step: row.step,
+    event: to_string(row.event),
+    from_state: to_string(row.from_state),
+    status: to_string(row.status),
+    reason: inspect(row.reason)
+  }
+end)
+|> DF.new()
+```
+
+## Manual event editor
+
+```elixir
+input = Kino.Input.text("Events (comma-separated)", default: "step,step,step")
+input
+```
+
+```elixir
+events =
+  input
+  |> Kino.Input.read()
+  |> String.split(",", trim: true)
+  |> Enum.map(&String.trim/1)
+  |> Enum.map(&String.to_atom/1)
+
+DebugTrace.run(ETSStruct.new(), class_rep, machine, events)
+```

@@ -130,6 +130,10 @@ Then open http://localhost:8080 in your browser.
   - State transition table and heatmap
   - Emission table and summary chart
   - End-to-end machine run trace
+- **`notebooks/ets_constraint_debugger.livemd`**: Constraint-level debugging:
+  - Step-by-step state/emission trace rows
+  - Primitive/link growth trend chart
+  - Failure-mode trace visualization with manual event input
 
 ### Creating New Notebooks
 
