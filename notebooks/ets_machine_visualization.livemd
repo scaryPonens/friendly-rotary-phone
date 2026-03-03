@@ -11,6 +11,11 @@ Mix.install([
 ## Load modules
 
 ```elixir
+# Load project modules from source so notebook works without prior compile.
+Path.wildcard("lib/**/*.ex")
+|> Enum.sort()
+|> Enum.each(&Code.require_file/1)
+
 alias Explorer.DataFrame, as: DF
 alias VegaLite, as: Vl
 alias MlLab.ETS.Examples.BubbleMan

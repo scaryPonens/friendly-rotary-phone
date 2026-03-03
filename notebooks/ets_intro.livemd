@@ -9,12 +9,14 @@ Mix.install([
 
 ## Load project modules
 
-> Run this notebook from the repository root (`friendly-rotary-phone`) and run `mix compile` once in the project before opening Livebook so local modules are available.
+> Run this notebook from the repository root (`friendly-rotary-phone`) so `lib/**/*.ex` paths resolve correctly.
 
 ```elixir
 # IMPORTANT: do not call Mix.install/2 again in this runtime.
-# Ensure project modules are available from local build artifacts.
-Code.prepend_path("_build/dev/lib/ml_lab/ebin")
+# Load project modules directly from source so this works even before `mix compile`.
+Path.wildcard("lib/**/*.ex")
+|> Enum.sort()
+|> Enum.each(&Code.require_file/1)
 
 alias MlLab.ETS.Examples.BubbleMan
 alias MlLab.ETS.Struct, as: ETSStruct
