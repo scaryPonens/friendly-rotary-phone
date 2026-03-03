@@ -9,15 +9,12 @@ Mix.install([
 
 ## Load project modules
 
-> Run this notebook from the repository root (`friendly-rotary-phone`) so `Mix` can load local modules.
+> Run this notebook from the repository root (`friendly-rotary-phone`) and run `mix compile` once in the project before opening Livebook so local modules are available.
 
 ```elixir
-if Code.ensure_loaded?(MlLab) do
-  :ok
-else
-  Mix.install([])
-  Code.prepend_path("_build/dev/lib/ml_lab/ebin")
-end
+# IMPORTANT: do not call Mix.install/2 again in this runtime.
+# Ensure project modules are available from local build artifacts.
+Code.prepend_path("_build/dev/lib/ml_lab/ebin")
 
 alias MlLab.ETS.Examples.BubbleMan
 alias MlLab.ETS.Struct, as: ETSStruct
