@@ -11,6 +11,7 @@ defmodule MlLab.ETS.Examples.BubbleMan do
   alias MlLab.ETS.ClassRepresentation
   alias MlLab.ETS.Struct, as: ETSStruct
   alias MlLab.ETS.StructGeneratingMachine
+  alias MlLab.ETS.Transducer
 
   @spec class_representation() :: ClassRepresentation.t()
   def class_representation do
@@ -58,5 +59,42 @@ defmodule MlLab.ETS.Examples.BubbleMan do
       :step,
       :step
     ])
+  end
+
+  @doc """
+  Converts generated primitive labels into symbolic spatial instructions.
+  """
+  @spec spatial_program() :: {:ok, [atom()], atom()} | {:error, term()}
+  def spatial_program do
+    with {:ok, struct, _state, _trace} <- generate() do
+      desired_order = [:head, :torso, :left_arm, :right_arm]
+
+      labels =
+        struct.primitives
+        |> Map.values()
+        |> Enum.map(& &1.label)
+        |> Enum.sort_by(fn label -> Enum.find_index(desired_order, &(&1 == label)) || 999 end)
+
+      Transducer.run(transducer(), labels)
+    end
+  end
+
+  @spec transducer() :: Transducer.t()
+  def transducer do
+    %Transducer{
+      start_state: :s0,
+      transitions: %{
+        {:s0, :head} => :s1,
+        {:s1, :torso} => :s2,
+        {:s2, :left_arm} => :s3,
+        {:s3, :right_arm} => :s4
+      },
+      emissions: %{
+        {:s0, :head} => [:spawn_head, :render],
+        {:s1, :torso} => [:grow_torso, :render],
+        {:s2, :left_arm} => [:attach_left_arm, :render],
+        {:s3, :right_arm} => [:attach_right_arm, :render]
+      }
+    }
   end
 end

@@ -56,6 +56,12 @@ link_rows =
 DF.new(link_rows)
 ```
 
+## Spatial instantiation (transducer demo)
+
+```elixir
+BubbleMan.spatial_program()
+```
+
 ## Try a custom event sequence
 
 ```elixir

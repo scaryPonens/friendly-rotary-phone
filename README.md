@@ -6,7 +6,7 @@ A beginner-friendly Elixir project for machine learning workflows using Nx, EXLA
 
 This project provides a complete setup for machine learning development in Elixir with:
 
-It now also includes an **ETS-inspired thesis reimplementation track** (temporal structs, active constraints, finite-state struct generation) under `lib/ml_lab/ets/`, designed to be explored from Livebook.
+It now also includes an **ETS-inspired thesis reimplementation track** (temporal structs, active constraints, finite-state struct generation, and a minimal transducer for spatial instruction emission) under `lib/ml_lab/ets/`, designed to be explored from Livebook.
 - **Nx**: Numerical computing library for multi-dimensional arrays and automatic differentiation
 - **EXLA**: Accelerated Linear Algebra compiler (Google XLA) for Nx with CPU/GPU support
 - **Explorer**: Fast dataframes for data manipulation and analysis
