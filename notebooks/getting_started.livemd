@@ -1,0 +1,225 @@
+# ML Lab - Getting Started
+
+```elixir
+Mix.install([
+  {:nx, "~> 0.6"},
+  {:exla, "~> 0.6"},
+  {:explorer, "~> 0.7"},
+  {:kino, "~> 0.11"},
+  {:vega_lite, "~> 0.1"},
+  {:kino_vega_lite, "~> 0.1"}
+])
+```
+
+## Introduction
+
+This notebook demonstrates basic machine learning workflows using:
+- **Nx**: Numerical computing library
+- **EXLA**: Accelerated Linear Algebra compiler for Nx
+- **Explorer**: Dataframes for data manipulation
+- **Kino**: Interactive widgets for Livebook
+
+## Setup
+
+```elixir
+# Configure Nx to use EXLA backend for acceleration
+Nx.default_backend(EXLA.Backend)
+
+# Import required modules
+require Explorer.DataFrame, as: DF
+alias Explorer.Series
+alias VegaLite, as: Vl
+```
+
+## 1. Working with Dataframes
+
+Let's create and manipulate a simple dataset using Explorer.
+
+```elixir
+# Create a sample dataset
+data = %{
+  "feature_1" => [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
+  "feature_2" => [2.5, 3.1, 4.2, 3.8, 5.5, 6.1, 7.3, 8.2, 9.1, 10.5],
+  "target" => [3.2, 5.1, 7.5, 8.2, 11.0, 12.8, 15.1, 16.9, 18.5, 21.0]
+}
+
+df = DF.new(data)
+
+# Display the dataframe
+Kino.DataTable.new(df)
+```
+
+```elixir
+# Basic statistics
+DF.describe(df)
+```
+
+## 2. Data Visualization
+
+Visualize the relationship between features and target using VegaLite.
+
+```elixir
+# Create a scatter plot
+Vl.new(width: 600, height: 400, title: "Feature 1 vs Target")
+|> Vl.data_from_values(df |> DF.to_rows())
+|> Vl.mark(:point, tooltip: true)
+|> Vl.encode_field(:x, "feature_1", type: :quantitative)
+|> Vl.encode_field(:y, "target", type: :quantitative)
+|> Vl.encode_field(:color, "feature_2", type: :quantitative)
+```
+
+## 3. Simple Linear Regression with Nx
+
+Let's implement a simple linear regression model using Nx tensors.
+
+```elixir
+defmodule SimpleLinearRegression do
+  import Nx.Defn
+
+  # Initialize random weights
+  def init_params(input_size) do
+    key = Nx.Random.key(42)
+    {weights, _new_key} = Nx.Random.normal(key, shape: {input_size, 1})
+    {bias, _} = Nx.Random.normal(key, shape: {1})
+    {weights, bias}
+  end
+
+  # Forward pass: y = X * w + b
+  defn predict(x, weights, bias) do
+    Nx.add(Nx.dot(x, weights), bias)
+  end
+
+  # Mean squared error loss
+  defn loss(x, y, weights, bias) do
+    pred = predict(x, weights, bias)
+    diff = Nx.subtract(pred, y)
+    Nx.mean(Nx.multiply(diff, diff))
+  end
+
+  # Training step with gradient descent
+  defn update({weights, bias}, x, y, learning_rate) do
+    {grad_w, grad_b} = grad({weights, bias}, &loss(x, y, &1, &2))
+
+    new_weights = Nx.subtract(weights, Nx.multiply(grad_w, learning_rate))
+    new_bias = Nx.subtract(bias, Nx.multiply(grad_b, learning_rate))
+
+    {new_weights, new_bias}
+  end
+
+  # Train the model
+  def train(x, y, epochs, learning_rate \\ 0.01) do
+    {weights, bias} = init_params(Nx.axis_size(x, 1))
+
+    Enum.reduce(1..epochs, {weights, bias}, fn epoch, {w, b} ->
+      {new_w, new_b} = update({w, b}, x, y, learning_rate)
+
+      if rem(epoch, 100) == 0 do
+        current_loss = loss(x, y, new_w, new_b) |> Nx.to_number()
+        IO.puts("Epoch #{epoch}: Loss = #{Float.round(current_loss, 4)}")
+      end
+
+      {new_w, new_b}
+    end)
+  end
+end
+```
+
+```elixir
+# Prepare training data from our dataframe
+x_data =
+  df
+  |> DF.select(["feature_1", "feature_2"])
+  |> DF.to_columns()
+  |> then(fn cols ->
+    Nx.tensor([cols["feature_1"], cols["feature_2"]])
+    |> Nx.transpose()
+  end)
+
+y_data =
+  df["target"]
+  |> Series.to_list()
+  |> Nx.tensor()
+  |> Nx.reshape({:auto, 1})
+
+# Display shapes
+IO.puts("X shape: #{inspect(Nx.shape(x_data))}")
+IO.puts("Y shape: #{inspect(Nx.shape(y_data))}")
+```
+
+```elixir
+# Train the model
+{trained_weights, trained_bias} = SimpleLinearRegression.train(x_data, y_data, 500, 0.01)
+
+IO.puts("\nTrained Parameters:")
+IO.puts("Weights: #{inspect(trained_weights)}")
+IO.puts("Bias: #{inspect(trained_bias)}")
+```
+
+```elixir
+# Make predictions
+predictions = SimpleLinearRegression.predict(x_data, trained_weights, trained_bias)
+
+# Calculate final loss
+final_loss =
+  SimpleLinearRegression.loss(x_data, y_data, trained_weights, trained_bias)
+  |> Nx.to_number()
+
+IO.puts("Final Loss: #{Float.round(final_loss, 4)}")
+
+# Show predictions vs actual
+comparison =
+  DF.new(%{
+    "actual" => y_data |> Nx.to_flat_list(),
+    "predicted" => predictions |> Nx.to_flat_list()
+  })
+
+Kino.DataTable.new(comparison)
+```
+
+## 4. Tensor Operations
+
+Explore basic Nx tensor operations.
+
+```elixir
+# Create tensors
+a = Nx.tensor([[1, 2, 3], [4, 5, 6]])
+b = Nx.tensor([[7, 8, 9], [10, 11, 12]])
+
+IO.puts("Tensor A:")
+IO.inspect(a)
+
+IO.puts("\nTensor B:")
+IO.inspect(b)
+
+IO.puts("\nAddition (A + B):")
+IO.inspect(Nx.add(a, b))
+
+IO.puts("\nElement-wise multiplication (A * B):")
+IO.inspect(Nx.multiply(a, b))
+
+IO.puts("\nMatrix multiplication (A * B^T):")
+IO.inspect(Nx.dot(a, Nx.transpose(b)))
+```
+
+## Next Steps
+
+This notebook covered the basics:
+- Loading and manipulating data with Explorer
+- Visualizing data with VegaLite
+- Building a simple linear regression model with Nx
+- Working with tensors
+
+To continue learning:
+1. Try loading real CSV data with `Explorer.DataFrame.from_csv/2`
+2. Implement more complex neural network architectures
+3. Explore pre-trained models with Bumblebee
+4. Experiment with GPU acceleration using EXLA
+
+## Loading CSV Data (Example)
+
+```elixir
+# Uncomment to load a CSV file:
+# csv_path = "/path/to/your/data.csv"
+# csv_df = DF.from_csv!(csv_path)
+# Kino.DataTable.new(csv_df)
+```
