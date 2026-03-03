@@ -2,76 +2,31 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   test:
-    name: Test (Elixir ${{matrix.elixir}} / OTP ${{matrix.otp}})
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        elixir: ['1.18.0']
-        otp: ['27.1.2']
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Elixir
-      uses: erlef/setup-beam@v1
-      with:
-        elixir-version: ${{ matrix.elixir }}
-        otp-version: ${{ matrix.otp }}
-    
-    - name: Restore dependencies cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          deps
-          _build
-        key: ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-${{ hashFiles('**/mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-mix-${{ matrix.elixir }}-${{ matrix.otp }}-
-    
-    - name: Install dependencies
-      run: mix deps.get
-    
-    - name: Check formatting
-      run: mix format --check-formatted
-    
-    - name: Compile code (warnings as errors)
-      run: mix compile --warnings-as-errors
-    
-    - name: Run tests
-      run: mix test
 
-  format:
-    name: Code Formatting
-    runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Elixir
-      uses: erlef/setup-beam@v1
-      with:
-        elixir-version: '1.18.0'
-        otp-version: '27.1.2'
-    
-    - name: Restore dependencies cache
-      uses: actions/cache@v4
-      with:
-        path: deps
-        key: ${{ runner.os }}-mix-format-${{ hashFiles('**/mix.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-mix-format-
-    
-    - name: Install dependencies
-      run: mix deps.get
-    
-    - name: Check code formatting
-      run: mix format --check-formatted
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Sync dependencies
+        run: uv sync --all-groups
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Test
+        run: uv run pytest
