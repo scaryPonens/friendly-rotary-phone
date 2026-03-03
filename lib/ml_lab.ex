@@ -1,18 +1,21 @@
 defmodule MlLab do
   @moduledoc """
-  Documentation for `MlLab`.
+  Entry points for ML Lab and ETS experiments.
   """
 
+  alias MlLab.ETS.Examples.BubbleMan
+
   @doc """
-  Hello world.
+  Runs the minimal Bubble Man ETS generator.
 
   ## Examples
 
-      iex> MlLab.hello()
-      :world
+      iex> {:ok, _struct, :q3, trace} = MlLab.generate_bubble_man()
+      iex> trace
+      [:seed_head, :grow_torso, :attach_limbs]
 
   """
-  def hello do
-    :world
+  def generate_bubble_man do
+    BubbleMan.generate()
   end
 end

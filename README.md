@@ -5,6 +5,8 @@ A beginner-friendly Elixir project for machine learning workflows using Nx, EXLA
 ## Overview
 
 This project provides a complete setup for machine learning development in Elixir with:
+
+It now also includes an **ETS-inspired thesis reimplementation track** (temporal structs, active constraints, finite-state struct generation) under `lib/ml_lab/ets/`, designed to be explored from Livebook.
 - **Nx**: Numerical computing library for multi-dimensional arrays and automatic differentiation
 - **EXLA**: Accelerated Linear Algebra compiler (Google XLA) for Nx with CPU/GPU support
 - **Explorer**: Fast dataframes for data manipulation and analysis
@@ -120,6 +122,10 @@ Then open http://localhost:8080 in your browser.
   - Data visualization with VegaLite
   - Building a simple linear regression model with Nx
   - Working with tensors and numerical operations
+- **`notebooks/ets_intro.livemd`**: ETS thesis-inspired walkthrough:
+  - Temporal struct generation with a finite-state machine
+  - Active-constraint extension steps
+  - Primitive/link inspection via Explorer dataframes
 
 ### Creating New Notebooks
 
@@ -142,9 +148,11 @@ ml_lab/
 ├── lib/
 │   ├── ml_lab.ex           # Main module
 │   └── ml_lab/
-│       └── application.ex  # OTP application
+│       ├── application.ex  # OTP application
+│       └── ets/            # ETS reimplementation modules
 ├── notebooks/
-│   └── getting_started.livemd  # Example notebook
+│   ├── getting_started.livemd  # ML/Nx example notebook
+│   └── ets_intro.livemd       # ETS walkthrough notebook
 ├── test/
 │   ├── test_helper.exs
 │   └── ml_lab_test.exs

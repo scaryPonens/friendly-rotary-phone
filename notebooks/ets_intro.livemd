@@ -1,0 +1,69 @@
+# ETS Reimplementation Primer (Elixir)
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11"},
+  {:explorer, "~> 0.7"}
+])
+```
+
+## Load project modules
+
+> Run this notebook from the repository root (`friendly-rotary-phone`) so `Mix` can load local modules.
+
+```elixir
+if Code.ensure_loaded?(MlLab) do
+  :ok
+else
+  Mix.install([])
+  Code.prepend_path("_build/dev/lib/ml_lab/ebin")
+end
+
+alias MlLab.ETS.Examples.BubbleMan
+alias MlLab.ETS.Struct, as: ETSStruct
+alias Explorer.DataFrame, as: DF
+```
+
+## Generate a Bubble Man struct
+
+```elixir
+{:ok, ets_struct, final_state, trace} = BubbleMan.generate()
+
+%{final_state: final_state, trace: trace, primitive_count: map_size(ets_struct.primitives), links: MapSet.size(ets_struct.links)}
+```
+
+## Inspect primitives as a dataframe
+
+```elixir
+primitive_rows =
+  ets_struct.primitives
+  |> Enum.map(fn {id, primitive} ->
+    %{id: inspect(id), label: to_string(primitive.label), kind: inspect(primitive.kind)}
+  end)
+
+DF.new(primitive_rows)
+```
+
+## Inspect temporal links
+
+```elixir
+link_rows =
+  ETSStruct.to_edge_list(ets_struct)
+  |> Enum.map(fn {from_id, to_id} ->
+    %{from: inspect(from_id), to: inspect(to_id)}
+  end)
+
+DF.new(link_rows)
+```
+
+## Try a custom event sequence
+
+```elixir
+# Short sequence: ends in non-accepting state
+MlLab.ETS.StructGeneratingMachine.generate(
+  ETSStruct.new(),
+  BubbleMan.class_representation(),
+  BubbleMan.machine(),
+  [:step, :step]
+)
+```
