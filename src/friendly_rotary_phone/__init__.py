@@ -20,6 +20,15 @@ from .examples import (
     generate_bubble_man,
 )
 from .graphviz import machine_to_dot
+from .io import (
+    class_representation_from_dict,
+    class_representation_to_dict,
+    machine_from_dict,
+    machine_to_dict,
+    struct_from_dict,
+    struct_to_dict,
+)
+from .visualization import machine_to_networkx, struct_to_networkx
 
 __all__ = [
     "Primitive",
@@ -38,4 +47,12 @@ __all__ = [
     "primitive_attachment",
     "single_level_substruct",
     "reconcile_partial_orders",
+    "struct_to_dict",
+    "struct_from_dict",
+    "machine_to_dict",
+    "machine_from_dict",
+    "class_representation_to_dict",
+    "class_representation_from_dict",
+    "machine_to_networkx",
+    "struct_to_networkx",
 ]
